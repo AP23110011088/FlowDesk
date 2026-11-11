@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Settings</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { display: block; margin: 8px 0; padding: 6px; width: 300px; }
+    button { padding: 8px 16px; margin-top: 10px; }
+    .error { color: red; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h2>Settings</h2>
+  <form id="settingsForm">
+    <label>Name:</label>
+    <input type="text" id="name" placeholder="Your name">
+    <span class="error" id="nameError"></span>
+
+    <label>Email:</label>
+    <input type="email" id="email" placeholder="Your email">
+    <span class="error" id="emailError"></span>
+
+    <label>Password:</label>
+    <input type="password" id="password" placeholder="New password">
+    <span class="error" id="passwordError"></span>
+
+    <label>Theme:</label>
+    <select id="theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+
+    <button type="submit">Save</button>
+  </form>
+
+  <script>
+    document.getElementById('settingsForm').onsubmit = function(e) {
+      e.preventDefault();
+      var name = document.getElementById('name').value;
+      var email = document.getElementById('email').value;
+      var password = document.getElementById('password').value;
+      var valid = true;
+
+      document.getElementById('nameError').innerText = '';
+      document.getElementById('emailError').innerText = '';
+      document.getElementById('passwordError').innerText = '';
+
+      if (!name) {
+        document.getElementById('nameError').innerText = 'Name is required';
+        valid = false;
+      }
+      if (!email) {
+        document.getElementById('emailError').innerText = 'Email is required';
+        valid = false;
+      }
+      if (password && password.length < 6) {
+        document.getElementById('passwordError').innerText = 'Password too short';
+        valid = false;
+      }
+      if (valid) {
+        alert('Settings saved!');
+      }
+    };
+  </script>
+</body>
+</html>
