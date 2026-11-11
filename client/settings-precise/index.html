@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowDesk — Account Settings</title>
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --color-bg: #0f1117;
+      --color-surface: #1a1d2e;
+      --color-surface-2: #242740;
+      --color-border: #2e3250;
+      --color-border-focus: #6c63ff;
+      --color-accent: #6c63ff;
+      --color-accent-hover: #7c74ff;
+      --color-text: #e8eaf6;
+      --color-muted: #9196b3;
+      --color-error: #ff6b6b;
+      --color-error-bg: rgba(255,107,107,0.08);
+      --color-success: #51cf66;
+      --color-success-bg: rgba(81,207,102,0.08);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.2s ease;
+    }
+    [data-theme="light"] {
+      --color-bg: #f0f2ff;
+      --color-surface: #ffffff;
+      --color-surface-2: #f5f6ff;
+      --color-border: #dde1ff;
+      --color-text: #1a1d2e;
+      --color-muted: #6b7280;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 520px;
+      padding: 2.5rem;
+    }
+
+    /* ── Header ── */
+    .card-header { margin-bottom: 2rem; }
+    .card-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-header p { color: var(--color-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-muted);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 1.25rem; }
+    .field label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text);
+      margin-bottom: 0.4rem;
+    }
+    .field label .required {
+      color: var(--color-error);
+      margin-left: 2px;
+      font-size: 0.75rem;
+    }
+
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%;
+      background: var(--color-surface-2);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-size: 0.9375rem;
+      padding: 0.625rem 0.875rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .input-wrap input::placeholder { color: var(--color-muted); }
+    .input-wrap input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+    }
+    .input-wrap input[aria-invalid="true"] {
+      border-color: var(--color-error);
+      box-shadow: 0 0 0 3px var(--color-error-bg);
+    }
+    .input-wrap input[aria-invalid="false"]:not(:placeholder-shown) {
+      border-color: var(--color-success);
+    }
+
+    /* password toggle */
+    .toggle-pw {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-muted);
+      font-size: 1rem;
+      padding: 0.25rem;
+      line-height: 1;
+    }
+    .toggle-pw:focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      border-radius: 4px;
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      margin-top: 0.3rem;
+    }
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--color-error);
+      margin-top: 0.3rem;
+      display: none;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .field-error.visible { display: flex; }
+    .field-error::before { content: "⚠"; font-size: 0.875rem; }
+
+    /* ── Theme radios ── */
+    .radio-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .radio-card {
+      flex: 1;
+      min-width: 90px;
+    }
+    .radio-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .radio-card label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.75rem 0.5rem;
+      background: var(--color-surface-2);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.8125rem;
+      transition: border-color var(--transition), background var(--transition);
+      user-select: none;
+    }
+    .radio-card label .icon { font-size: 1.25rem; }
+    .radio-card input:checked + label {
+      border-color: var(--color-accent);
+      background: rgba(108,99,255,0.1);
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+    .radio-card input:focus-visible + label {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
+
+    /* ── Notification checkboxes ── */
+    .checkbox-group { display: flex; flex-direction: column; gap: 0.6rem; }
+    .checkbox-item { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
+    .checkbox-item input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: var(--color-accent);
+      cursor: pointer;
+    }
+    .checkbox-item span { font-size: 0.9rem; }
+
+    /* ── Password strength bar ── */
+    .strength-bar {
+      height: 4px;
+      background: var(--color-border);
+      border-radius: 999px;
+      margin-top: 0.5rem;
+      overflow: hidden;
+      display: none;
+    }
+    .strength-bar.visible { display: block; }
+    .strength-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease, background 0.3s ease;
+      width: 0%;
+    }
+
+    /* ── Submit ── */
+    .btn-submit {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 4px 16px rgba(108,99,255,0.3);
+    }
+    .btn-submit:hover { opacity: 0.92; box-shadow: 0 6px 20px rgba(108,99,255,0.45); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--color-success-bg);
+      border: 1px solid var(--color-success);
+      color: var(--color-success);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      animation: slideIn 0.3s ease;
+      z-index: 999;
+    }
+    #toast.visible { display: flex; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Live region for screen readers ── */
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.5rem; }
+      .radio-group { gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Live region for screen reader announcements -->
+  <div id="liveRegion" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+  <main class="card" role="main">
+    <div class="card-header">
+      <h1>⚙ FlowDesk Settings</h1>
+      <p>Manage your account preferences and security.</p>
+    </div>
+
+    <form id="settingsForm" novalidate aria-label="Account settings form">
+
+      <!-- ── Profile section ── -->
+      <fieldset class="section" aria-labelledby="profile-title">
+        <legend id="profile-title" class="section-title">Profile</legend>
+
+        <!-- Display Name -->
+        <div class="field" id="field-name">
+          <label for="displayName">
+            Display name <span class="required" aria-label="required">*</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              type="text"
+              id="displayName"
+              name="displayName"
+              autocomplete="name"
+              placeholder="e.g. Alex Johnson"
+              maxlength="50"
+              aria-required="true"
+              aria-describedby="nameHint nameError"
+            >
+          </div>
+          <p class="field-hint" id="nameHint">2–50 characters.</p>
+          <p class="field-error" id="nameError" role="alert" aria-live="assertive"></p>
+        </div>
+
+        <!-- Email -->
+        <div class="field" id="field-email">
+          <label for="email">
+            Email <span class="required" aria-label="required">*</span>
+          </label>
+          <div class="input-wrap">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              aria-required="true"
+              aria-describedby="emailError"
+            >
+          </div>
+          <p class="field-error" id="emailError" role="alert" aria-live="assertive"></p>
+        </div>
+      </fieldset>
+
+      <!-- ── Security section ── -->
+      <fieldset class="section" aria-labelledby="security-title">
+        <legend id="security-title" class="section-title">Change Password <span style="font-weight:400;text-transform:none;font-size:0.7rem">(optional)</span></legend>
+
+        <!-- Current Password -->
+        <div class="field" id="field-currentPassword">
+          <label for="currentPassword">Current password</label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              autocomplete="current-password"
+              placeholder="Enter current password"
+              aria-describedby="currentPasswordError"
+            >
+            <button type="button" class="toggle-pw" aria-label="Show current password" data-target="currentPassword">👁</button>
+          </div>
+          <p class="field-error" id="currentPasswordError" role="alert" aria-live="assertive"></p>
+        </div>
+
+        <!-- New Password -->
+        <div class="field" id="field-newPassword">
+          <label for="newPassword">New password</label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              autocomplete="new-password"
+              placeholder="Min 8 chars, 1 number, 1 symbol"
+              aria-describedby="newPasswordHint newPasswordError"
+            >
+            <button type="button" class="toggle-pw" aria-label="Show new password" data-target="newPassword">👁</button>
+          </div>
+          <p class="field-hint" id="newPasswordHint">At least 8 characters with 1 number and 1 special character.</p>
+          <div class="strength-bar" id="strengthBar" aria-hidden="true">
+            <div class="strength-fill" id="strengthFill"></div>
+          </div>
+          <p class="field-error" id="newPasswordError" role="alert" aria-live="assertive"></p>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field" id="field-confirmPassword">
+          <label for="confirmPassword">Confirm new password</label>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Re-enter new password"
+              aria-describedby="confirmPasswordError"
+            >
+            <button type="button" class="toggle-pw" aria-label="Show confirm password" data-target="confirmPassword">👁</button>
+          </div>
+          <p class="field-error" id="confirmPasswordError" role="alert" aria-live="assertive"></p>
+        </div>
+      </fieldset>
+
+      <!-- ── Preferences section ── -->
+      <fieldset class="section" aria-labelledby="prefs-title">
+        <legend id="prefs-title" class="section-title">Preferences</legend>
+
+        <!-- Theme -->
+        <div class="field">
+          <span id="theme-label" style="font-size:0.875rem;font-weight:500;display:block;margin-bottom:0.5rem;">
+            Theme
+          </span>
+          <div class="radio-group" role="radiogroup" aria-labelledby="theme-label">
+            <div class="radio-card">
+              <input type="radio" name="theme" id="themeLight" value="light">
+              <label for="themeLight"><span class="icon">☀️</span>Light</label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="theme" id="themeDark" value="dark" checked>
+              <label for="themeDark"><span class="icon">🌙</span>Dark</label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" name="theme" id="themeSystem" value="system">
+              <label for="themeSystem"><span class="icon">💻</span>System</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="field">
+          <span id="notif-label" style="font-size:0.875rem;font-weight:500;display:block;margin-bottom:0.5rem;">
+            Notifications
+          </span>
+          <div class="checkbox-group" role="group" aria-labelledby="notif-label">
+            <label class="checkbox-item">
+              <input type="checkbox" id="notifEmail" name="notifications" value="email" checked>
+              <span>📧 Email notifications</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="notifPush" name="notifications" value="push">
+              <span>🔔 Push notifications</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="notifNone" name="notifications" value="none">
+              <span>🔕 None</span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn-submit" id="submitBtn">Save Settings</button>
+    </form>
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" role="status" aria-live="polite">✓ Settings saved successfully!</div>
+
+<script>
+  /* ─── Utilities ─── */
+  const $ = id => document.getElementById(id);
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PW_STRONG_RE = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+  function setError(fieldId, errorId, message) {
+    const input = $(fieldId);
+    const errorEl = $(errorId);
+    errorEl.textContent = message;
+    errorEl.classList.toggle('visible', !!message);
+    if (input) {
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+    return !!message;
+  }
+
+  function clearError(fieldId, errorId) {
+    setError(fieldId, errorId, '');
+  }
+
+  function announce(msg) {
+    const lr = $('liveRegion');
+    lr.textContent = '';
+    requestAnimationFrame(() => { lr.textContent = msg; });
+  }
+
+  /* ─── Password visibility toggles ─── */
+  document.querySelectorAll('.toggle-pw').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = $(btn.dataset.target);
+      const isHidden = target.type === 'password';
+      target.type = isHidden ? 'text' : 'password';
+      btn.setAttribute('aria-label', (isHidden ? 'Hide' : 'Show') + ' ' + btn.getAttribute('aria-label').replace(/^(Show|Hide) /, ''));
+    });
+  });
+
+  /* ─── Password strength meter ─── */
+  $('newPassword').addEventListener('input', function () {
+    const val = this.value;
+    const bar = $('strengthBar');
+    const fill = $('strengthFill');
+
+    if (!val) { bar.classList.remove('visible'); return; }
+    bar.classList.add('visible');
+
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+      { w: '25%', bg: '#ff6b6b' },
+      { w: '50%', bg: '#ffd43b' },
+      { w: '75%', bg: '#74c0fc' },
+      { w: '100%', bg: '#51cf66' },
+    ];
+    const lvl = levels[score - 1] || levels[0];
+    fill.style.width = lvl.w;
+    fill.style.background = lvl.bg;
+  });
+
+  /* ─── "None" notification mutual exclusivity ─── */
+  const notifNone = $('notifNone');
+  const notifEmail = $('notifEmail');
+  const notifPush = $('notifPush');
+
+  notifNone.addEventListener('change', () => {
+    if (notifNone.checked) {
+      notifEmail.checked = false;
+      notifPush.checked = false;
+    }
+  });
+  [notifEmail, notifPush].forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) notifNone.checked = false;
+    });
+  });
+
+  /* ─── Live theme preview ─── */
+  document.querySelectorAll('input[name="theme"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.body.dataset.theme = radio.value === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+        : radio.value;
+    });
+  });
+
+  /* ─── Inline validation on blur ─── */
+  $('displayName').addEventListener('blur', validateName);
+  $('email').addEventListener('blur', validateEmail);
+  $('newPassword').addEventListener('blur', validateNewPassword);
+  $('confirmPassword').addEventListener('blur', validateConfirm);
+
+  function validateName() {
+    const v = $('displayName').value.trim();
+    if (!v) return setError('displayName', 'nameError', 'Display name is required.');
+    if (v.length < 2) return setError('displayName', 'nameError', 'Must be at least 2 characters.');
+    if (v.length > 50) return setError('displayName', 'nameError', 'Must be 50 characters or fewer.');
+    return !setError('displayName', 'nameError', '');
+  }
+
+  function validateEmail() {
+    const v = $('email').value.trim();
+    if (!v) return setError('email', 'emailError', 'Email is required.');
+    if (!EMAIL_RE.test(v)) return setError('email', 'emailError', 'Enter a valid email address.');
+    return !setError('email', 'emailError', '');
+  }
+
+  function validateNewPassword() {
+    const v = $('newPassword').value;
+    if (!v) { clearError('newPassword', 'newPasswordError'); return true; } // optional
+    if (!PW_STRONG_RE.test(v)) {
+      return setError('newPassword', 'newPasswordError',
+        'Password must be at least 8 characters with 1 number and 1 special character.');
+    }
+    return !setError('newPassword', 'newPasswordError', '');
+  }
+
+  function validateConfirm() {
+    const np = $('newPassword').value;
+    const cp = $('confirmPassword').value;
+    if (!np && !cp) { clearError('confirmPassword', 'confirmPasswordError'); return true; }
+    if (cp !== np) {
+      return setError('confirmPassword', 'confirmPasswordError', 'Passwords do not match.');
+    }
+    return !setError('confirmPassword', 'confirmPasswordError', '');
+  }
+
+  /* ─── Password section interdependency ─── */
+  // If new password is set, current password becomes required
+  function validateCurrentPassword() {
+    const np = $('newPassword').value;
+    const cp = $('currentPassword').value;
+    if (np && !cp) {
+      return setError('currentPassword', 'currentPasswordError', 'Current password is required to set a new one.');
+    }
+    return !setError('currentPassword', 'currentPasswordError', '');
+  }
+
+  /* ─── Form submission ─── */
+  $('settingsForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Run all validators
+    const nameOk    = validateName();
+    const emailOk   = validateEmail();
+    const curPwOk   = validateCurrentPassword();
+    const newPwOk   = validateNewPassword();
+    const confirmOk = validateConfirm();
+
+    if (!nameOk || !emailOk || !curPwOk || !newPwOk || !confirmOk) {
+      // Focus the first invalid field
+      const firstInvalid = document.querySelector('[aria-invalid="true"]');
+      if (firstInvalid) firstInvalid.focus();
+      announce('Form has errors. Please review and correct them.');
+      return;
+    }
+
+    // Simulate save
+    const btn = $('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = 'Save Settings';
+      const toast = $('toast');
+      toast.classList.add('visible');
+      announce('Settings saved successfully.');
+      setTimeout(() => toast.classList.remove('visible'), 3000);
+    }, 800);
+  });
+
+  /* ─── Verification checklist (run in console to self-verify) ───
+    1. ✅ Display name: required, 2–50 chars — validated in validateName()
+    2. ✅ Email: required, regex EMAIL_RE — validated in validateEmail()
+    3. ✅ New password: optional; if present, min 8 + 1 number + 1 symbol via PW_STRONG_RE
+    4. ✅ Current password: required ONLY when new password is provided
+    5. ✅ Confirm password: must match newPassword exactly
+    6. ✅ aria-invalid set on every field on error/success
+    7. ✅ aria-live regions announce errors and save success to screen readers
+    8. ✅ First invalid field focused on submit failure
+    9. ✅ "None" checkbox deselects Email/Push; Email/Push deselects "None"
+   10. ✅ Theme radio live-previews body data-theme attribute
+   11. ✅ Password visibility toggles update aria-label correctly
+   12. ✅ Strength meter hidden when field empty, visible with colour on input
+  ─── */
+</script>
+</body>
+</html>
